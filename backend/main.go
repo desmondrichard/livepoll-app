@@ -35,7 +35,7 @@ func main() {
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE")
 		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 		if c.Request.Method == "OPTIONS" {
-			c.AbortWithStatus(http.StatusOK)
+			c.AbortWithStatus(http.StatusNoContent)
 			return
 		}
 		c.Next()

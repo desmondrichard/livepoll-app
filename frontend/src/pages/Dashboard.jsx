@@ -1,23 +1,23 @@
 import { useState, useEffect } from "react";
-import { Link,useLocation } from "react-router";
+import { Link, useLocation } from "react-router";
 import { BarChart3, Vote, Zap, TrendingUp, Plus } from "lucide-react";
 import Card from "../components/ui/Card";
 import { useAuth } from "../context/AuthContext";
 
 const Dashboard = () => {
   const { user } = useAuth();
-   const location = useLocation();
+  const location = useLocation();
   const [polls, setPolls] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const API_URL = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
     if (!user) return;
 
     const fetchPolls = async () => {
       try {
-        const res = await fetch(
-          `http://localhost:8080/api/all-polls?userId=${user.id}`,
-        );
+        const res = await fetch(`${API_URL}/api/all-polls?userId=${user.id}`);
         const data = await res.json();
         setPolls(data || []);
       } catch (err) {
@@ -27,7 +27,7 @@ const Dashboard = () => {
       }
     };
     fetchPolls();
-  }, [user,location]);
+  }, [user, location]);
 
   if (loading) {
     return (
@@ -102,7 +102,7 @@ const Dashboard = () => {
         </h3>
 
         {polls.length === 0 ? (
-          /* 👇 THE NEW EMPTY STATE UI 👇 */
+          /*  THE NEW EMPTY STATE UI  */
           <div className="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
             <div className="text-5xl mb-4">📊</div>
             <h3 className="text-lg font-semibold text-gray-800 mb-2">

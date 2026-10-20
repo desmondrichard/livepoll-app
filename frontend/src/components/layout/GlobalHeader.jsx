@@ -5,7 +5,7 @@ import { useAuth } from "../../context/AuthContext";
 
 const GlobalHeader = () => {
   const [menuOpen, setMenuOpen] = useState(false);
-  const { user, logoutUser } = useAuth(); // 👈 Get user data and logout function
+  const { user, logoutUser } = useAuth(); // Get user data and logout function
   const navigate = useNavigate();
 
   const handleLogout = () => {

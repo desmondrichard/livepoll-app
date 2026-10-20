@@ -11,14 +11,16 @@ import toast from "react-hot-toast";
 const CreatePoll = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [question, setQuestion] = useState("");
-  const [options, setOptions] = useState(["", ""]);
+  const [question, setQuestion] = useState(""); //question
+  const [options, setOptions] = useState(["", ""]); //options as array
   const [settings, setSettings] = useState({
+    //settings
     allowMultiple: false,
     showResultsBeforeVoting: false,
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const API_URL = import.meta.env.VITE_API_URL;
 
   // to edit options:
   const handleOptionChange = (index, value) => {
@@ -107,8 +109,8 @@ const CreatePoll = () => {
           })),
       };
 
-      // 👇 SEND TO GO BACKEND
-      const res = await fetch("http://localhost:8080/api/polls", {
+      //  SEND TO GO BACKEND
+      const res = await fetch(`${API_URL}/api/polls`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

@@ -4,7 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 export default function ProtectedRoute() {
   const { user, loading } = useAuth();
 
-  // 1. If loading, show a spinner or blank screen. Do NOT redirect yet.
+  // 1. If loading, show a spinner or loading message.
   if (loading) {
     return <div className="text-center mt-20 text-gray-500">Loading...</div>;
   }

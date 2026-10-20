@@ -12,14 +12,16 @@ export default function LiveResultsPage() {
   const [poll, setPoll] = useState(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+  
+  const API_URL = import.meta.env.VITE_API_URL;
 
   const shareUrl = `${window.location.origin}/poll-voting-page/${id}`;
 
-  // 1. Fetch the real poll from the Go backend (which now gets live counts from Redis)
+  // 1. Fetch the real poll from the Go backend
   useEffect(() => {
     const fetchPoll = async () => {
       try {
-        const res = await fetch(`http://localhost:8080/api/polls/${id}`);
+        const res = await fetch(`${API_URL}/api/polls/${id}`);
         if (res.ok) {
           const data = await res.json();
           setPoll(data);
@@ -31,25 +33,27 @@ export default function LiveResultsPage() {
       }
     };
     fetchPoll();
-  }, [id]);
+  }, [id, API_URL]);
 
   // 2. Connect to WebSockets for real-time results
   const ws = useRef(null);
 
   useEffect(() => {
-    ws.current = new WebSocket("ws://localhost:8080/ws");
+    if (!API_URL) return;
+
+    // 🔥 FIXED: Use API_URL to build the secure WebSocket URL
+    const WS_URL = API_URL.replace("https://", "wss://").replace("http://", "ws://");
+    ws.current = new WebSocket(`${WS_URL}/ws`);
 
     ws.current.onmessage = (event) => {
       const data = JSON.parse(event.data);
 
-      // 👇 Listen for the new "vote_update" message from Redis
       if (data.type === "vote_update" && data.pollId === id) {
         setPoll((prev) => {
           if (!prev) return prev;
           return {
             ...prev,
             options: prev.options.map((o) =>
-              // 👇 Use the exact count provided by Redis
               o.id === data.optionId ? { ...o, votes: data.voteCount } : o,
             ),
           };
@@ -60,7 +64,7 @@ export default function LiveResultsPage() {
     return () => {
       if (ws.current) ws.current.close();
     };
-  }, [id]);
+  }, [id, API_URL]);
 
   // 3. Handle Copy Link
   const handleCopy = async () => {
@@ -79,7 +83,8 @@ export default function LiveResultsPage() {
     if (!confirm("Reset all votes? This cannot be undone.")) return;
 
     try {
-      const res = await fetch(`http://localhost:8080/api/polls/reset/${id}`, {
+      // 🔥 FIXED: Use API_URL here
+      const res = await fetch(`${API_URL}/api/polls/reset/${id}`, {
         method: "POST",
       });
 

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { Link, useParams } from "react-router";
 import { CheckCircle2, BarChart3 } from "lucide-react";
 import PollHeader from "../components/poll/PollHeader";
@@ -16,6 +16,16 @@ const ShareablePollVotingPage = () => {
 
   const ws = useRef(null);
 
+  // 🔥 FIX 1: Define the API URL using the Vercel Environment Variable
+  const API_URL = import.meta.env.VITE_API_URL;
+
+  // 🔥 FIX 2: Automatically convert https:// to wss:// for the WebSocket
+  const WS_URL = useMemo(() => {
+    // If env variable is missing, fallback to local for testing
+    const baseUrl = API_URL || "http://localhost:8080"; 
+    return baseUrl.replace("https://", "wss://").replace("http://", "ws://");
+  }, [API_URL]);
+
   // 1. Fetch Poll & Check LocalStorage
   useEffect(() => {
     // Check if they already voted in a previous session
@@ -28,7 +38,8 @@ const ShareablePollVotingPage = () => {
 
     const fetchPoll = async () => {
       try {
-        const res = await fetch(`http://localhost:8080/api/polls/${id}`);
+        // 🔥 FIX 3: Use API_URL instead of localhost
+        const res = await fetch(`${API_URL}/api/polls/${id}`);
         if (!res.ok) throw new Error("Poll not found");
         const data = await res.json();
         setPoll(data);
@@ -38,12 +49,19 @@ const ShareablePollVotingPage = () => {
         setLoading(false);
       }
     };
-    fetchPoll();
-  }, [id]);
+    
+    // Only fetch if API_URL exists, otherwise it fails silently on Vercel
+    if (API_URL) {
+      fetchPoll();
+    }
+  }, [id, API_URL]);
 
   // 2. WebSocket Setup
   useEffect(() => {
-    ws.current = new WebSocket("ws://localhost:8080/ws");
+    // 🔥 FIX 4: Use WS_URL instead of localhost
+    if (!WS_URL) return;
+
+    ws.current = new WebSocket(`${WS_URL}/ws`);
 
     ws.current.onopen = () => console.log("🟢 Connected to WebSocket");
 
@@ -72,7 +90,7 @@ const ShareablePollVotingPage = () => {
     return () => {
       if (ws.current) ws.current.close();
     };
-  }, [id]);
+  }, [id, WS_URL]);
 
   const handleVote = (optionId) => {
     if (hasVoted || !ws.current) return;
@@ -85,7 +103,7 @@ const ShareablePollVotingPage = () => {
       }),
     );
 
-    // 👇 Save vote to localStorage
+    //  Save vote to localStorage
     const votedPolls = JSON.parse(
       localStorage.getItem("livepoll_voted") || "[]",
     );

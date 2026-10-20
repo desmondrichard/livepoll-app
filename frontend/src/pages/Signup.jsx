@@ -17,7 +17,7 @@ const Signup = () => {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [serverError, setServerError] = useState("");
-
+  const API_URL = import.meta.env.VITE_API_URL;
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
     setErrors({ ...errors, [e.target.name]: "" });
@@ -39,13 +39,13 @@ const Signup = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const v = validate();
-    if (Object.keys(v).length) return setErrors(v);
+    if (Object.keys(v).length) return setErrors(v); //returns an array with error as key and sets in error state
 
     setLoading(true);
     setServerError("");
 
     try {
-      const res = await fetch("http://localhost:8080/api/signup", {
+      const res = await fetch(`${API_URL}/api/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -62,9 +62,9 @@ const Signup = () => {
 
       const data = await res.json();
       console.log("Signup successful:", data);
-      
-      // 👇 Navigate directly to Login page after successful signup
-     toast.success("Account created! Please log in.");
+
+      // Navigate directly to Login page after successful signup
+      toast.success("Account created! Please log in.");
       navigate("/login");
     } catch (err) {
       setServerError(err.message);

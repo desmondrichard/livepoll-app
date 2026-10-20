@@ -15,6 +15,8 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [serverError, setServerError] = useState("");
 
+  const API_URL = import.meta.env.VITE_API_URL;
+
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
     setErrors({ ...errors, [e.target.name]: "" });
@@ -39,7 +41,7 @@ const Login = () => {
     setServerError("");
 
     try {
-      const res = await fetch("http://localhost:8080/api/login", {
+      const res = await fetch(`${API_URL}/api/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -56,7 +58,7 @@ const Login = () => {
       const data = await res.json();
       console.log("Login successful:", data);
 
-      // 👇 Save user to Auth Context and navigate to dashboard
+      // Save user to Auth Context and navigate to dashboard
       loginUser(data);
       navigate("/dashboard");
     } catch (err) {

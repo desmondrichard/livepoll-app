@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
-	"os" // Added for reading environment variables
+	"os"
 
 	"github.com/joho/godotenv"
 
@@ -29,11 +29,15 @@ func main() {
 	// 3. Initialize Gin Router
 	r := gin.Default()
 
-	// 4. CORS Middleware for Gin
+	// 4. CORS Middleware for Gin (UPDATED for Vercel + Render)
 	r.Use(func(c *gin.Context) {
+		// Allow all origins (Vercel URLs, localhost, etc.)
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE")
-		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		// Allow all headers (fixes the preflight check failure)
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "*")
+
+		// Browsers send an OPTIONS request first. We must reply with 204 No Content.
 		if c.Request.Method == "OPTIONS" {
 			c.AbortWithStatus(http.StatusNoContent)
 			return
@@ -76,7 +80,6 @@ func main() {
 	})
 
 	// 6. Start Server (UPDATED FOR RENDER)
-	// Render provides a dynamic port via environment variables.
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080" // Fallback for local development

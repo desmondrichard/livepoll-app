@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"strconv" // 👈 Added for Redis count conversion
+	"strconv" //Added for Redis count conversion
 	"sync"
 	"time"
 
@@ -69,9 +69,7 @@ func WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if voteData.Type == "vote" {
-			// ==========================================
 			// REDIS: Check if they already voted (Rate Limiting)
-			// ==========================================
 			userIP := r.RemoteAddr
 			redisKey := "voted:" + voteData.PollID + ":" + userIP
 
@@ -88,9 +86,7 @@ func WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 				continue
 			}
 
-			// ==========================================
 			// REDIS: Count the vote LIVE
-			// ==========================================
 			voteCountKey := "poll:" + voteData.PollID
 			optionIDStr := strconv.Itoa(voteData.OptionID)
 
@@ -101,9 +97,7 @@ func WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 				continue
 			}
 
-			// ==========================================
 			// MONGODB: Save the vote permanently
-			// ==========================================
 			objID, err := primitive.ObjectIDFromHex(voteData.PollID)
 			if err == nil {
 				collection := database.MongoClient.Database("livepoll").Collection("polls")
@@ -124,9 +118,7 @@ func WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 
-			// ==========================================
 			// BROADCAST: Tell everyone the new Redis count
-			// ==========================================
 			broadcastData := map[string]interface{}{
 				"type":      "vote_update",
 				"pollId":    voteData.PollID,

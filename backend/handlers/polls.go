@@ -3,7 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
-	"strings" // 👈 ADDED THIS
+	"strings"
 
 	"live-polling-app/database"
 	"live-polling-app/models"
@@ -24,7 +24,7 @@ func CreatePollHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 👇 SERVER-SIDE VALIDATION 👇
+	//  SERVER-SIDE VALIDATION
 	if len(strings.TrimSpace(poll.Question)) < 5 {
 		http.Error(w, "Question must be at least 5 characters long", http.StatusBadRequest)
 		return
@@ -41,7 +41,7 @@ func CreatePollHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	// 👆 END OF VALIDATION 👆
+	//  END OF VALIDATION
 
 	poll.Status = "active"
 	for i := range poll.Options {

@@ -3,6 +3,9 @@ package main
 import (
 	"log"
 	"net/http"
+	"os" // Added for reading environment variables
+
+	"github.com/joho/godotenv"
 
 	"live-polling-app/database"
 	"live-polling-app/handlers"
@@ -11,16 +14,22 @@ import (
 )
 
 func main() {
-	// 1. Connect to Databases
+	// 1. Load .env file
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("No .env file found (this is normal in production)")
+	}
+
+	// 2. Connect to Database
 	if err := database.ConnectDB(); err != nil {
 		log.Fatalf("database initialization failed: %v", err)
 	}
 	defer database.CloseDB()
 
-	// 2. Initialize Gin Router
+	// 3. Initialize Gin Router
 	r := gin.Default()
 
-	// 3. CORS Middleware for Gin
+	// 4. CORS Middleware for Gin
 	r.Use(func(c *gin.Context) {
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE")
@@ -32,7 +41,7 @@ func main() {
 		c.Next()
 	})
 
-	// 4. Register Routes
+	// 5. Register Routes
 	// WebSocket endpoint
 	r.GET("/ws", func(c *gin.Context) {
 		handlers.WebSocketHandler(c.Writer, c.Request)
@@ -44,7 +53,6 @@ func main() {
 	})
 
 	r.GET("/api/polls/:id", func(c *gin.Context) {
-		// Gin extracts the :id from the URL and puts it back so your existing handler can read it
 		c.Request.URL.Path = "/api/polls/" + c.Param("id")
 		handlers.GetPollHandler(c.Writer, c.Request)
 	})
@@ -67,9 +75,15 @@ func main() {
 		handlers.LoginHandler(c.Writer, c.Request)
 	})
 
-	// 5. Start Server
-	log.Println("🚀 Server running on http://localhost:8080")
-	if err := r.Run(":8080"); err != nil {
+	// 6. Start Server (UPDATED FOR RENDER)
+	// Render provides a dynamic port via environment variables.
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080" // Fallback for local development
+	}
+
+	log.Printf("🚀 Server running on port %s", port)
+	if err := r.Run(":" + port); err != nil {
 		log.Fatalf("server failed: %v", err)
 	}
 }

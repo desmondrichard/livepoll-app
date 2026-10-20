@@ -3,7 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
-	"strings" // 👈 ADDED THIS
+	"strings"
 
 	"live-polling-app/database"
 	"live-polling-app/models"
@@ -25,12 +25,12 @@ func SignupHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 👇 SERVER-SIDE VALIDATION 👇
+	// SERVER-SIDE VALIDATION
 	if len(strings.TrimSpace(user.Name)) == 0 {
 		http.Error(w, "Name is required", http.StatusBadRequest)
 		return
 	}
-	
+
 	if len(strings.TrimSpace(user.Email)) == 0 {
 		http.Error(w, "Email is required", http.StatusBadRequest)
 		return
@@ -40,7 +40,7 @@ func SignupHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Password must be at least 6 characters", http.StatusBadRequest)
 		return
 	}
-	// 👆 END OF VALIDATION 👆
+	//  END OF VALIDATION
 
 	// Check if user already exists
 	collection := database.MongoClient.Database("livepoll").Collection("users")

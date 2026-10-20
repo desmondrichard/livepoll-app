@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"os" // ADDED
 	"strings"
 
 	"live-polling-app/database"
@@ -43,7 +44,9 @@ func SignupHandler(w http.ResponseWriter, r *http.Request) {
 	//  END OF VALIDATION
 
 	// Check if user already exists
-	collection := database.MongoClient.Database("livepoll").Collection("users")
+	// CHANGED: Uses DB_NAME env variable
+	dbName := os.Getenv("DB_NAME") 
+	collection := database.MongoClient.Database(dbName).Collection("users")
 	var existingUser models.User
 	err := collection.FindOne(database.Ctx, bson.M{"email": user.Email}).Decode(&existingUser)
 	if err == nil {
@@ -90,7 +93,9 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	collection := database.MongoClient.Database("livepoll").Collection("users")
+	// CHANGED: Uses DB_NAME env variable
+	dbName := os.Getenv("DB_NAME")
+	collection := database.MongoClient.Database(dbName).Collection("users")
 	var user models.User
 	err := collection.FindOne(database.Ctx, bson.M{"email": req.Email}).Decode(&user)
 	if err != nil {

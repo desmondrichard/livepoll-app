@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -12,7 +13,7 @@ import (
 
 var (
 	MongoClient *mongo.Client
-	RedisClient *redis.Client
+	RedisClient *redis.Client // ADDED: Redis client
 	Ctx         = context.Background()
 )
 
@@ -21,7 +22,13 @@ func ConnectDB() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	mongoClient, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://localhost:27017"))
+	// 1. Connect to MongoDB
+	mongoURI := os.Getenv("MONGO_URI")
+	if mongoURI == "" {
+		return fmt.Errorf("MONGO_URI environment variable is not set")
+	}
+
+	mongoClient, err := mongo.Connect(ctx, options.Client().ApplyURI(mongoURI))
 	if err != nil {
 		return fmt.Errorf("create MongoDB connection: %w", err)
 	}
@@ -31,18 +38,24 @@ func ConnectDB() error {
 		return fmt.Errorf("ping MongoDB: %w", err)
 	}
 
-	redisClient := redis.NewClient(&redis.Options{
-		Addr: "localhost:6379",
-	})
-
-	if err := redisClient.Ping(ctx).Err(); err != nil {
-		_ = redisClient.Close()
-		_ = mongoClient.Disconnect(context.Background())
-		return fmt.Errorf("ping Redis: %w", err)
-	}
-
 	MongoClient = mongoClient
-	RedisClient = redisClient
+
+	// 2. Connect to Redis (Upstash)
+	redisURL := os.Getenv("REDIS_URL")
+	if redisURL != "" {
+		opts, err := redis.ParseURL(redisURL)
+		if err != nil {
+			return fmt.Errorf("invalid REDIS_URL: %w", err)
+		}
+		
+		redisClient := redis.NewClient(opts)
+		
+		if err := redisClient.Ping(ctx).Err(); err != nil {
+			return fmt.Errorf("ping Redis: %w", err)
+		}
+		
+		RedisClient = redisClient
+	}
 
 	return nil
 }

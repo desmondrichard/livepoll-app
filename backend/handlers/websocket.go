@@ -4,7 +4,8 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"strconv" //Added for Redis count conversion
+	"os" // ADDED: For environment variables
+	"strconv"
 	"sync"
 	"time"
 
@@ -100,7 +101,10 @@ func WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 			// MONGODB: Save the vote permanently
 			objID, err := primitive.ObjectIDFromHex(voteData.PollID)
 			if err == nil {
-				collection := database.MongoClient.Database("livepoll").Collection("polls")
+				// CHANGED: Use DB_NAME env variable here instead of hardcoded "livepoll"
+				dbName := os.Getenv("DB_NAME")
+				collection := database.MongoClient.Database(dbName).Collection("polls")
+
 				filter := bson.M{"_id": objID}
 				update := bson.M{
 					"$inc": bson.M{"options.$[elem].votes": 1},

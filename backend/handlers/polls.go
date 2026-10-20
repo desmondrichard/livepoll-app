@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"os" // ADDED
 	"strings"
 
 	"live-polling-app/database"
@@ -48,7 +49,9 @@ func CreatePollHandler(w http.ResponseWriter, r *http.Request) {
 		poll.Options[i].Votes = 0
 	}
 
-	collection := database.MongoClient.Database("livepoll").Collection("polls")
+	// CHANGED: Uses DB_NAME env variable
+	dbName := os.Getenv("DB_NAME")
+	collection := database.MongoClient.Database(dbName).Collection("polls")
 	result, err := collection.InsertOne(database.Ctx, poll)
 	if err != nil {
 		http.Error(w, "Failed to save poll", http.StatusInternalServerError)
@@ -73,7 +76,9 @@ func GetPollHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 3. Find it in MongoDB
-	collection := database.MongoClient.Database("livepoll").Collection("polls")
+	// CHANGED: Uses DB_NAME env variable
+	dbName := os.Getenv("DB_NAME")
+	collection := database.MongoClient.Database(dbName).Collection("polls")
 	var poll models.Poll
 	err = collection.FindOne(database.Ctx, bson.M{"_id": objID}).Decode(&poll)
 	if err != nil {
@@ -98,7 +103,9 @@ func GetAllPollsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	collection := database.MongoClient.Database("livepoll").Collection("polls")
+	// CHANGED: Uses DB_NAME env variable
+	dbName := os.Getenv("DB_NAME")
+	collection := database.MongoClient.Database(dbName).Collection("polls")
 	filter := bson.M{"creatorId": userID}
 	cursor, err := collection.Find(database.Ctx, filter)
 	if err != nil {
@@ -130,7 +137,9 @@ func ResetPollHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	collection := database.MongoClient.Database("livepoll").Collection("polls")
+	// CHANGED: Uses DB_NAME env variable
+	dbName := os.Getenv("DB_NAME")
+	collection := database.MongoClient.Database(dbName).Collection("polls")
 
 	update := bson.M{
 		"$set": bson.M{"options.$[].votes": 0},

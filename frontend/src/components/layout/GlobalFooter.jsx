@@ -5,9 +5,7 @@ const GlobalFooter = () => {
   return (
     <div className="globalFooterContainer pt-10 md:pt-0">
       <footer className="bg-gray-900 text-gray-300 fixed bottom-0 left-0 right-0 z-50 w-full">
-        {/* 👇 Reduced padding slightly on mobile for more space */}
         <div className="max-w-6xl mx-auto px-2 sm:px-6 py-3 md:py-4">
-          {/* 👇 Changed to flex-row by default, gap-2 on mobile, gap-4 on desktop */}
           <div className="flex flex-row items-center justify-between gap-2 md:gap-4">
             <div className="flex items-center gap-1 sm:gap-2 shrink-0">
               <span className="text-lg sm:text-xl">📊</span>
@@ -16,7 +14,6 @@ const GlobalFooter = () => {
               </span>
             </div>
 
-            {/* 👇 Text size reduced to text-[10px] on mobile, text-sm on desktop */}
             <p className="text-[10px] sm:text-sm text-gray-400 text-center">
               All rights reserved
             </p>

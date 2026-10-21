@@ -16,13 +16,13 @@ const ShareablePollVotingPage = () => {
 
   const ws = useRef(null);
 
-  // 🔥 FIX 1: Define the API URL using the Vercel Environment Variable
+  //  FIX 1: Define the API URL using the Vercel Environment Variable
   const API_URL = import.meta.env.VITE_API_URL;
 
-  // 🔥 FIX 2: Automatically convert https:// to wss:// for the WebSocket
+  //  FIX 2: Automatically convert https:// to wss:// for the WebSocket
   const WS_URL = useMemo(() => {
     // If env variable is missing, fallback to local for testing
-    const baseUrl = API_URL || "http://localhost:8080"; 
+    const baseUrl = API_URL || "http://localhost:8080";
     return baseUrl.replace("https://", "wss://").replace("http://", "ws://");
   }, [API_URL]);
 
@@ -38,7 +38,7 @@ const ShareablePollVotingPage = () => {
 
     const fetchPoll = async () => {
       try {
-        // 🔥 FIX 3: Use API_URL instead of localhost
+        //  FIX 3: Use API_URL instead of localhost
         const res = await fetch(`${API_URL}/api/polls/${id}`);
         if (!res.ok) throw new Error("Poll not found");
         const data = await res.json();
@@ -49,7 +49,7 @@ const ShareablePollVotingPage = () => {
         setLoading(false);
       }
     };
-    
+
     // Only fetch if API_URL exists, otherwise it fails silently on Vercel
     if (API_URL) {
       fetchPoll();
@@ -58,7 +58,7 @@ const ShareablePollVotingPage = () => {
 
   // 2. WebSocket Setup
   useEffect(() => {
-    // 🔥 FIX 4: Use WS_URL instead of localhost
+    //  FIX 4: Use WS_URL instead of localhost
     if (!WS_URL) return;
 
     ws.current = new WebSocket(`${WS_URL}/ws`);

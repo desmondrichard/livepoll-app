@@ -17,8 +17,8 @@ const Signup = () => {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [serverError, setServerError] = useState("");
-  // const API_URL = import.meta.env.VITE_API_URL;
-  const API_URL = "";
+  const API_URL = import.meta.env.VITE_API_URL;
+  // const API_URL = "";
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
     setErrors({ ...errors, [e.target.name]: "" });

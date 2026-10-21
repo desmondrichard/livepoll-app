@@ -1,16 +1,12 @@
 {
-  "routes": [
+  "rewrites": [
     {
-      "src": "/api/(.*)",
-      "dest": "https://live-polling-backend-oegc.onrender.com/api/$1"
+      "source": "/api/:path*",
+      "destination": "https://live-polling-backend-oegc.onrender.com/api/:path*"
     },
     {
-      "src": "/ws",
-      "dest": "https://live-polling-backend-oegc.onrender.com/ws"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/ws",
+      "destination": "https://live-polling-backend-oegc.onrender.com/ws"
     }
   ]
 }

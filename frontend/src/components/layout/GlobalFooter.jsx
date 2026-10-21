@@ -3,17 +3,26 @@ import React from "react";
 const GlobalFooter = () => {
   const year = new Date().getFullYear();
   return (
-    <div className="globalFooterContainer">
+    <div className="globalFooterContainer pt-10 md:pt-0">
       <footer className="bg-gray-900 text-gray-300 fixed bottom-0 left-0 right-0 z-50 w-full">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <span className="text-xl">📊</span>
-              <span className="font-semibold text-white">LivePoll</span>
+        {/* 👇 Reduced padding slightly on mobile for more space */}
+        <div className="max-w-6xl mx-auto px-2 sm:px-6 py-3 md:py-4">
+          {/* 👇 Changed to flex-row by default, gap-2 on mobile, gap-4 on desktop */}
+          <div className="flex flex-row items-center justify-between gap-2 md:gap-4">
+            <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+              <span className="text-lg sm:text-xl">📊</span>
+              <span className="font-semibold text-white text-sm sm:text-base">
+                LivePoll
+              </span>
             </div>
 
-            <p className="text-sm text-gray-400">All rights reserved</p>
-            <p className="text-sm text-gray-400">© {year} LivePoll</p>
+            {/* 👇 Text size reduced to text-[10px] on mobile, text-sm on desktop */}
+            <p className="text-[10px] sm:text-sm text-gray-400 text-center">
+              All rights reserved
+            </p>
+            <p className="text-[10px] sm:text-sm text-gray-400 text-right">
+              © {year} LivePoll
+            </p>
           </div>
         </div>
       </footer>

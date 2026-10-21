@@ -3,7 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
-	"os" // ADDED
+	"os" 
 	"strings"
 
 	"live-polling-app/database"

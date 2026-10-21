@@ -3,7 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
-	"os" // ADDED
+	"os"
 	"strings"
 
 	"live-polling-app/database"
@@ -65,7 +65,7 @@ func CreatePollHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetPollHandler(w http.ResponseWriter, r *http.Request) {
-	// 1. Get the ID from the URL (e.g., /api/polls/123 -> "123")
+	// 1. Get the ID from the URL
 	pollID := r.URL.Path[len("/api/polls/"):]
 
 	// 2. Convert to MongoDB ID

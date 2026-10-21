@@ -13,7 +13,7 @@ import (
 
 var (
 	MongoClient *mongo.Client
-	RedisClient *redis.Client // ADDED: Redis client
+	RedisClient *redis.Client // Added Redis client
 	Ctx         = context.Background()
 )
 

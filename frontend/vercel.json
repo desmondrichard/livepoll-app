@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://live-polling-backend-oegc.onrender.com/api/:path*"
+    },
+    {
+      "source": "/ws",
+      "destination": "https://live-polling-backend-oegc.onrender.com/ws"
+    }
+  ]
+}

@@ -1,16 +1,18 @@
+// main.go
 package main
 
 import (
 	"log"
+	"net/http" // ADDED for OPTIONS bypass
 	"os"
-	"time" // ADDED for CORS max age
+	"time"
 
 	"github.com/joho/godotenv"
 
 	"live-polling-app/database"
 	"live-polling-app/handlers"
 
-	"github.com/gin-contrib/cors" // ADDED official CORS package
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -30,23 +32,26 @@ func main() {
 	// 3. Initialize Gin Router
 	r := gin.Default()
 
-	// 4. CORS Middleware (UPDATED with official package)
+	// 4. CORS Middleware (FIXED)
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"*"}, // Allows Vercel and localhost
+		AllowOrigins:     []string{"*"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
-		AllowCredentials: true,
+		AllowCredentials: false, // 👈 MUST BE FALSE when using "*"
 		MaxAge:           12 * time.Hour,
 	}))
 
+	// 4.5 Handle OPTIONS requests cleanly
+	r.OPTIONS("/*any", func(c *gin.Context) {
+		c.AbortWithStatus(http.StatusNoContent)
+	})
+
 	// 5. Register Routes
-	// WebSocket endpoint
 	r.GET("/ws", func(c *gin.Context) {
 		handlers.WebSocketHandler(c.Writer, c.Request)
 	})
 
-	// Poll endpoints
 	r.POST("/api/polls", func(c *gin.Context) {
 		handlers.CreatePollHandler(c.Writer, c.Request)
 	})
@@ -65,7 +70,6 @@ func main() {
 		handlers.ResetPollHandler(c.Writer, c.Request)
 	})
 
-	// Auth endpoints
 	r.POST("/api/signup", func(c *gin.Context) {
 		handlers.SignupHandler(c.Writer, c.Request)
 	})
@@ -74,10 +78,10 @@ func main() {
 		handlers.LoginHandler(c.Writer, c.Request)
 	})
 
-	// 6. Start Server (UPDATED FOR RENDER)
+	// 6. Start Server
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "8080" // Fallback for local development
+		port = "8080"
 	}
 
 	log.Printf("🚀 Server running on port %s", port)

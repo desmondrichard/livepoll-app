@@ -2,14 +2,15 @@ package main
 
 import (
 	"log"
-	"net/http"
 	"os"
+	"time" // ADDED for CORS max age
 
 	"github.com/joho/godotenv"
 
 	"live-polling-app/database"
 	"live-polling-app/handlers"
 
+	"github.com/gin-contrib/cors" // ADDED official CORS package
 	"github.com/gin-gonic/gin"
 )
 
@@ -29,21 +30,15 @@ func main() {
 	// 3. Initialize Gin Router
 	r := gin.Default()
 
-	// 4. CORS Middleware for Gin (UPDATED for Vercel + Render)
-	r.Use(func(c *gin.Context) {
-		// Allow all origins (Vercel URLs, localhost, etc.)
-		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE")
-		// Allow all headers (fixes the preflight check failure)
-		c.Writer.Header().Set("Access-Control-Allow-Headers", "*")
-
-		// Browsers send an OPTIONS request first. We must reply with 204 No Content.
-		if c.Request.Method == "OPTIONS" {
-			c.AbortWithStatus(http.StatusNoContent)
-			return
-		}
-		c.Next()
-	})
+	// 4. CORS Middleware (UPDATED with official package)
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"}, // Allows Vercel and localhost
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
 
 	// 5. Register Routes
 	// WebSocket endpoint

@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"log" // ADDED
 	"net/http"
 	"os"
 	"strings"
@@ -25,7 +26,7 @@ func CreatePollHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//  SERVER-SIDE VALIDATION
+	// SERVER-SIDE VALIDATION
 	if len(strings.TrimSpace(poll.Question)) < 5 {
 		http.Error(w, "Question must be at least 5 characters long", http.StatusBadRequest)
 		return
@@ -42,14 +43,13 @@ func CreatePollHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	//  END OF VALIDATION
+	// END OF VALIDATION
 
 	poll.Status = "active"
 	for i := range poll.Options {
 		poll.Options[i].Votes = 0
 	}
 
-	// CHANGED: Uses DB_NAME env variable
 	dbName := os.Getenv("DB_NAME")
 	collection := database.MongoClient.Database(dbName).Collection("polls")
 	result, err := collection.InsertOne(database.Ctx, poll)
@@ -65,18 +65,14 @@ func CreatePollHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetPollHandler(w http.ResponseWriter, r *http.Request) {
-	// 1. Get the ID from the URL
 	pollID := r.URL.Path[len("/api/polls/"):]
 
-	// 2. Convert to MongoDB ID
 	objID, err := primitive.ObjectIDFromHex(pollID)
 	if err != nil {
 		http.Error(w, "Invalid Poll ID", http.StatusBadRequest)
 		return
 	}
 
-	// 3. Find it in MongoDB
-	// CHANGED: Uses DB_NAME env variable
 	dbName := os.Getenv("DB_NAME")
 	collection := database.MongoClient.Database(dbName).Collection("polls")
 	var poll models.Poll
@@ -86,7 +82,6 @@ func GetPollHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 4. Send it back
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(poll)
 }
@@ -103,7 +98,6 @@ func GetAllPollsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// CHANGED: Uses DB_NAME env variable
 	dbName := os.Getenv("DB_NAME")
 	collection := database.MongoClient.Database(dbName).Collection("polls")
 	filter := bson.M{"creatorId": userID}
@@ -137,18 +131,26 @@ func ResetPollHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// CHANGED: Uses DB_NAME env variable
 	dbName := os.Getenv("DB_NAME")
 	collection := database.MongoClient.Database(dbName).Collection("polls")
 
+	// 1. Reset MongoDB votes to 0
 	update := bson.M{
 		"$set": bson.M{"options.$[].votes": 0},
 	}
 
 	_, err = collection.UpdateOne(database.Ctx, bson.M{"_id": objID}, update)
 	if err != nil {
-		http.Error(w, "Failed to reset poll", http.StatusInternalServerError)
+		http.Error(w, "Failed to reset poll in MongoDB", http.StatusInternalServerError)
 		return
+	}
+
+	// 2. THE BUG FIX: Delete the Redis cache so the next vote starts from 0
+	redisKey := "poll:" + pollID
+	err = database.RedisClient.Del(database.Ctx, redisKey).Err()
+	if err != nil {
+		log.Println("Warning: Failed to delete Redis key on reset:", err)
+		// We don't return an error here because MongoDB was reset successfully
 	}
 
 	w.WriteHeader(http.StatusOK)

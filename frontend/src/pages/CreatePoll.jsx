@@ -212,7 +212,7 @@ const CreatePoll = () => {
           </div>
 
           {/* Settings */}
-          <div className="bg-white rounded-2xl shadow-md p-6">
+          {/* <div className="bg-white rounded-2xl shadow-md p-6">
             <p className="text-sm font-medium text-gray-700 mb-3">Settings</p>
 
             <div className="flex flex-col gap-3">
@@ -246,7 +246,7 @@ const CreatePoll = () => {
                 Show results before voting
               </label>
             </div>
-          </div>
+          </div> */}
 
           {/* Actions */}
           <div className="flex flex-col sm:flex-row gap-3 justify-end">

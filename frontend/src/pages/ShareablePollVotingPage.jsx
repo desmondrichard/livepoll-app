@@ -18,10 +18,8 @@ const ShareablePollVotingPage = () => {
 
   const ws = useRef(null);
 
-  // Define the API URL using the Vercel Environment Variable
   const API_URL = import.meta.env.VITE_API_URL;
 
-  // Automatically convert https:// to wss:// for the WebSocket
   const WS_URL = useMemo(() => {
     const baseUrl = API_URL || "http://localhost:8080";
     return baseUrl.replace("https://", "wss://").replace("http://", "ws://");
@@ -89,12 +87,18 @@ const ShareablePollVotingPage = () => {
   }, [id, WS_URL]);
 
   const handleVote = (optionId) => {
+    if (hasVoted) return;
+
+    //  PREVIEW MODE: Just show the thanks screen. No backend updates.
     if (isPreview) {
-      toast.error("You cannot vote in Preview mode.");
+      setSelected(optionId);
+      setHasVoted(true);
+      toast.success("Preview vote recorded (Not saved)");
       return;
     }
 
-    if (hasVoted || !ws.current) return;
+    // NORMAL MODE: Send to Go backend
+    if (!ws.current) return;
 
     ws.current.send(
       JSON.stringify({
@@ -130,11 +134,11 @@ const ShareablePollVotingPage = () => {
 
         {!hasVoted ? (
           <>
-            {/* PREVIEW WARNING BANNER */}
+            {/* 👇 PREVIEW WARNING BANNER */}
             {isPreview && (
               <div className="bg-amber-50 border border-amber-200 text-amber-700 text-sm px-4 py-3 rounded-lg mb-4 text-center">
-                👀 You are viewing this poll in Preview Mode. Voting is
-                disabled.
+                👀 You are viewing this poll in Preview Mode. Voting here will
+                not save.
               </div>
             )}
 
@@ -143,14 +147,8 @@ const ShareablePollVotingPage = () => {
                 <button
                   key={opt.id}
                   onClick={() => handleVote(opt.id)}
-                  // DISABLE BUTTON IF IN PREVIEW
-                  disabled={isPreview}
-                  className={`w-full text-left px-5 py-4 rounded-xl border-2 font-medium transition-all 
-                    ${
-                      isPreview
-                        ? "border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed"
-                        : "border-gray-200 bg-white hover:border-indigo-500 hover:bg-indigo-50 text-gray-800 hover:translate-x-1"
-                    }`}
+                  // 👇 Removed disabled={isPreview} so they can click it
+                  className="w-full text-left px-5 py-4 rounded-xl border-2 border-gray-200 bg-white hover:border-indigo-500 hover:bg-indigo-50 font-medium text-gray-800 transition-all hover:translate-x-1"
                 >
                   {opt.text}
                 </button>
@@ -159,7 +157,7 @@ const ShareablePollVotingPage = () => {
 
             <p className="text-xs text-gray-400 text-center mt-6">
               {isPreview
-                ? "Voting is disabled in preview mode."
+                ? "Preview mode: Clicking will show the thank you screen."
                 : "Choose one option to cast your vote"}
             </p>
           </>
@@ -173,7 +171,9 @@ const ShareablePollVotingPage = () => {
               Thanks for voting!
             </h2>
             <p className="text-gray-500 text-sm mt-1">
-              Your response has been recorded.
+              {isPreview
+                ? "This was a preview. Your vote was not saved."
+                : "Your response has been recorded."}
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 justify-center mt-6">

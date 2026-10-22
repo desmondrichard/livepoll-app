@@ -12,10 +12,14 @@ export default function LiveResultsPage() {
   const [poll, setPoll] = useState(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
-  
+
   const API_URL = import.meta.env.VITE_API_URL;
 
+  // ✅ RESTORED: The actual share URL (without ?preview=true)
   const shareUrl = `${window.location.origin}/poll-voting-page/${id}`;
+
+  // ✅ NEW: The preview URL (with ?preview=true)
+  const previewUrl = `${window.location.origin}/poll-voting-page/${id}?preview=true`;
 
   // 1. Fetch the real poll from the Go backend
   useEffect(() => {
@@ -32,7 +36,7 @@ export default function LiveResultsPage() {
         setLoading(false);
       }
     };
-    fetchPoll();
+    if (API_URL) fetchPoll();
   }, [id, API_URL]);
 
   // 2. Connect to WebSockets for real-time results
@@ -41,8 +45,10 @@ export default function LiveResultsPage() {
   useEffect(() => {
     if (!API_URL) return;
 
-    // 🔥 FIXED: Use API_URL to build the secure WebSocket URL
-    const WS_URL = API_URL.replace("https://", "wss://").replace("http://", "ws://");
+    const WS_URL = API_URL.replace("https://", "wss://").replace(
+      "http://",
+      "ws://",
+    );
     ws.current = new WebSocket(`${WS_URL}/ws`);
 
     ws.current.onmessage = (event) => {
@@ -69,6 +75,7 @@ export default function LiveResultsPage() {
   // 3. Handle Copy Link
   const handleCopy = async () => {
     try {
+      // ✅ Uses the clean shareUrl (no preview)
       await navigator.clipboard.writeText(shareUrl);
       setCopied(true);
       toast.success("Share link copied to clipboard!");
@@ -83,7 +90,6 @@ export default function LiveResultsPage() {
     if (!confirm("Reset all votes? This cannot be undone.")) return;
 
     try {
-      // 🔥 FIXED: Use API_URL here
       const res = await fetch(`${API_URL}/api/polls/reset/${id}`, {
         method: "POST",
       });
@@ -121,7 +127,7 @@ export default function LiveResultsPage() {
         <div className="flex flex-col sm:flex-row gap-2">
           <input
             readOnly
-            value={shareUrl}
+            value={shareUrl} // ✅ Uses the clean shareUrl
             className="flex-1 px-4 py-2.5 rounded-lg border-2 border-gray-200 bg-gray-50 text-sm text-gray-700 focus:outline-none"
           />
           <Button variant="primary" onClick={handleCopy} className="shrink-0">
@@ -138,7 +144,7 @@ export default function LiveResultsPage() {
         </div>
 
         <a
-          href={shareUrl}
+          href={previewUrl} // ✅ Uses the previewUrl
           target="_blank"
           rel="noreferrer"
           className="inline-flex items-center gap-1 text-xs text-indigo-600 hover:underline mt-3"

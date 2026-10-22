@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from "react";
-import { Link, useParams } from "react-router";
+import { Link, useParams, useSearchParams } from "react-router";
 import { CheckCircle2, BarChart3 } from "lucide-react";
 import PollHeader from "../components/poll/PollHeader";
 import Button from "../components/ui/Button";
@@ -7,6 +7,8 @@ import toast from "react-hot-toast";
 
 const ShareablePollVotingPage = () => {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
+  const isPreview = searchParams.get("preview") === "true";
 
   const [poll, setPoll] = useState(null);
   const [selected, setSelected] = useState(null);
@@ -16,19 +18,17 @@ const ShareablePollVotingPage = () => {
 
   const ws = useRef(null);
 
-  //  FIX 1: Define the API URL using the Vercel Environment Variable
+  // Define the API URL using the Vercel Environment Variable
   const API_URL = import.meta.env.VITE_API_URL;
 
-  //  FIX 2: Automatically convert https:// to wss:// for the WebSocket
+  // Automatically convert https:// to wss:// for the WebSocket
   const WS_URL = useMemo(() => {
-    // If env variable is missing, fallback to local for testing
     const baseUrl = API_URL || "http://localhost:8080";
     return baseUrl.replace("https://", "wss://").replace("http://", "ws://");
   }, [API_URL]);
 
   // 1. Fetch Poll & Check LocalStorage
   useEffect(() => {
-    // Check if they already voted in a previous session
     const votedPolls = JSON.parse(
       localStorage.getItem("livepoll_voted") || "[]",
     );
@@ -38,7 +38,6 @@ const ShareablePollVotingPage = () => {
 
     const fetchPoll = async () => {
       try {
-        //  FIX 3: Use API_URL instead of localhost
         const res = await fetch(`${API_URL}/api/polls/${id}`);
         if (!res.ok) throw new Error("Poll not found");
         const data = await res.json();
@@ -50,7 +49,6 @@ const ShareablePollVotingPage = () => {
       }
     };
 
-    // Only fetch if API_URL exists, otherwise it fails silently on Vercel
     if (API_URL) {
       fetchPoll();
     }
@@ -58,7 +56,6 @@ const ShareablePollVotingPage = () => {
 
   // 2. WebSocket Setup
   useEffect(() => {
-    //  FIX 4: Use WS_URL instead of localhost
     if (!WS_URL) return;
 
     ws.current = new WebSocket(`${WS_URL}/ws`);
@@ -69,7 +66,6 @@ const ShareablePollVotingPage = () => {
       const data = JSON.parse(event.data);
       if (data.error) {
         toast.error(data.error);
-        // If we optimistically set hasVoted to true, we need to revert it so they can see the error
         setHasVoted(false);
         return;
       }
@@ -93,6 +89,11 @@ const ShareablePollVotingPage = () => {
   }, [id, WS_URL]);
 
   const handleVote = (optionId) => {
+    if (isPreview) {
+      toast.error("You cannot vote in Preview mode.");
+      return;
+    }
+
     if (hasVoted || !ws.current) return;
 
     ws.current.send(
@@ -103,7 +104,6 @@ const ShareablePollVotingPage = () => {
       }),
     );
 
-    //  Save vote to localStorage
     const votedPolls = JSON.parse(
       localStorage.getItem("livepoll_voted") || "[]",
     );
@@ -130,19 +130,37 @@ const ShareablePollVotingPage = () => {
 
         {!hasVoted ? (
           <>
+            {/* PREVIEW WARNING BANNER */}
+            {isPreview && (
+              <div className="bg-amber-50 border border-amber-200 text-amber-700 text-sm px-4 py-3 rounded-lg mb-4 text-center">
+                👀 You are viewing this poll in Preview Mode. Voting is
+                disabled.
+              </div>
+            )}
+
             <div className="flex flex-col gap-3">
               {poll.options.map((opt) => (
                 <button
                   key={opt.id}
                   onClick={() => handleVote(opt.id)}
-                  className="w-full text-left px-5 py-4 rounded-xl border-2 border-gray-200 bg-white hover:border-indigo-500 hover:bg-indigo-50 font-medium text-gray-800 transition-all hover:translate-x-1"
+                  // DISABLE BUTTON IF IN PREVIEW
+                  disabled={isPreview}
+                  className={`w-full text-left px-5 py-4 rounded-xl border-2 font-medium transition-all 
+                    ${
+                      isPreview
+                        ? "border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed"
+                        : "border-gray-200 bg-white hover:border-indigo-500 hover:bg-indigo-50 text-gray-800 hover:translate-x-1"
+                    }`}
                 >
                   {opt.text}
                 </button>
               ))}
             </div>
+
             <p className="text-xs text-gray-400 text-center mt-6">
-              Choose one option to cast your vote
+              {isPreview
+                ? "Voting is disabled in preview mode."
+                : "Choose one option to cast your vote"}
             </p>
           </>
         ) : (

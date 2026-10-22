@@ -7,7 +7,7 @@ import { useAuth } from "../context/AuthContext";
 const Dashboard = () => {
   const { user } = useAuth();
   const location = useLocation();
-  const [polls, setPolls] = useState([]);
+  const [polls, setPolls] = useState([]); //contain polls list[{id,question,options}]
   const [loading, setLoading] = useState(true);
 
   const API_URL = import.meta.env.VITE_API_URL;

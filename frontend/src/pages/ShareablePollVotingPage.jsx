@@ -7,10 +7,10 @@ import toast from "react-hot-toast";
 
 const ShareablePollVotingPage = () => {
   const { id } = useParams();
-  const [searchParams] = useSearchParams();
+  const [searchParams] = useSearchParams(); // ?preview=true or ?preview=false
   const isPreview = searchParams.get("preview") === "true";
 
-  const [poll, setPoll] = useState(null);
+  const [poll, setPoll] = useState(null); //single poll data
   const [selected, setSelected] = useState(null);
   const [hasVoted, setHasVoted] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -101,6 +101,7 @@ const ShareablePollVotingPage = () => {
     if (!ws.current) return;
 
     ws.current.send(
+      //web socket accept only text:
       JSON.stringify({
         type: "vote",
         pollId: id,
@@ -134,7 +135,7 @@ const ShareablePollVotingPage = () => {
 
         {!hasVoted ? (
           <>
-            {/* 👇 PREVIEW WARNING BANNER */}
+            {/*  PREVIEW WARNING BANNER */}
             {isPreview && (
               <div className="bg-amber-50 border border-amber-200 text-amber-700 text-sm px-4 py-3 rounded-lg mb-4 text-center">
                 👀 You are viewing this poll in Preview Mode. Voting here will
@@ -147,7 +148,7 @@ const ShareablePollVotingPage = () => {
                 <button
                   key={opt.id}
                   onClick={() => handleVote(opt.id)}
-                  // 👇 Removed disabled={isPreview} so they can click it
+                  //  Removed disabled={isPreview} so they can click it
                   className="w-full text-left px-5 py-4 rounded-xl border-2 border-gray-200 bg-white hover:border-indigo-500 hover:bg-indigo-50 font-medium text-gray-800 transition-all hover:translate-x-1"
                 >
                   {opt.text}

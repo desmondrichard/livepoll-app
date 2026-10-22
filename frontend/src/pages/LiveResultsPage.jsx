@@ -9,16 +9,16 @@ import toast from "react-hot-toast";
 export default function LiveResultsPage() {
   const { id } = useParams();
 
-  const [poll, setPoll] = useState(null);
+  const [poll, setPoll] = useState(null); // current poll data
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
 
   const API_URL = import.meta.env.VITE_API_URL;
 
-  // ✅ RESTORED: The actual share URL (without ?preview=true)
+  //  RESTORED: The actual share URL (without ?preview=true)
   const shareUrl = `${window.location.origin}/poll-voting-page/${id}`;
 
-  // ✅ NEW: The preview URL (with ?preview=true)
+  //  NEW: The preview URL (with ?preview=true)
   const previewUrl = `${window.location.origin}/poll-voting-page/${id}?preview=true`;
 
   // 1. Fetch the real poll from the Go backend
@@ -85,7 +85,7 @@ export default function LiveResultsPage() {
     }
   };
 
-  // 4. Handle Reset Votes
+  // 4. Handle Reset Votes:
   const handleReset = async () => {
     if (!confirm("Reset all votes? This cannot be undone.")) return;
 
